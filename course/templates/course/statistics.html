@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %} Statistics {% endblock %}
+</head>
+<body>
+
+{% block main-body %}
+
+    <div class="container">
+        <div class="row">
+            <br>
+            <div class="col-lg-12">
+                <h3>Statistics</h3>
+                    {% for course in courses %}
+                        <div class="panel panel-default">
+                          <div class="panel-heading"><h4><a href="{% url 'course:statistics_view' course.id %}">{{ course.title }}</a></h4></div>
+
+                            <div class="panel-body">Students: {{ course.student_count }}</div>
+                            <div class="panel-body">Lessons: {{ course.lesson_count }}</div>
+                            <div class="panel-body">Exercises: {{ course.exercise_count }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+</body>
+</html>

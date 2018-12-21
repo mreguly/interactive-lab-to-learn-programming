@@ -1,0 +1,119 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="UTF-8">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <!-- Bootstrap Core CSS -->
+    <link href=" {% static 'course/css/bootstrap.min.css' %} " rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href=" {% static 'course/css/custom.css' %} " rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'course/images/favicon.png' %}">
+
+
+    <title>{% block title %}{% endblock %}</title>
+
+
+    {% block css-plugin %}
+    {% endblock %}
+
+</head>
+<body>
+
+<div id="wrap">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="">CodeLab</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="{% url 'course:listing' %}">Learning</a> {# 'info:fields' #}
+                    </li>
+                    {% if user.is_superuser %}
+                        <li>
+                            <a href="{% url 'course:manage' %}">Manage</a> {# 'info:fields' #}
+                        </li>
+                        <li>
+                            <a href="{% url 'course:statistics' %}">Stats</a>
+                        </li>
+                    {% endif %}
+
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    {% if user.is_authenticated %}
+                        <li><a>{{ user }}</a></li>
+                        <li><a href="{% url 'logout' %}">Log out</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Log in</a></li>
+                        <li><a href="{% url 'registration' %}">Registration</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    {% block main-body %}
+    {% endblock %}
+
+</div>
+
+    <div id="footer">
+        <div class="container">
+            <p class="text-center">Copyright &copy; 2017 Martin Reguly | Designed by <a href="http://getbootstrap.com/"
+                                                                                        target="_blank">Bootstrap</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+<!-- JS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+<script src="{% static 'course/js/jquery.min.js' %}"></script>
+<script src="{% static 'course/js/bootstrap.js' %}"></script>
+
+{% block js-plugin %}
+{% endblock %}
+
+{% block js-script %}
+{% endblock %}
+
+</html>

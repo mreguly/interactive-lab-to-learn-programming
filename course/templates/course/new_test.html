@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %} Test {% endblock %}
+</head>
+<body>
+
+{% block main-body %}
+
+    <div class="container">
+        <div class="row">
+            <h3>Test</h3>
+
+            <hr>
+
+                <form class="form-horizontal" action="" method="post">{% csrf_token %}{% include 'form_template.html' %}
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button class="btn btn-success" type="submit" id="register">Submit</button>
+                        </div>
+                    </div>
+                </form>
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+</body>
+</html>

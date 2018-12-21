@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %} Course {% endblock %}
+</head>
+<body>
+
+{% block main-body %}
+
+    <div class="container">
+        <div class="row">
+            <h3>Course</h3>
+
+            <hr>
+
+{#            <div class="col-lg-12">#}
+                <h4>Are you a new teacher? Please sign in: <a href="{% url 'course:new_teacher' %}">New Teacher</a></h4>
+                <br>
+                <form class="form-horizontal" action="" method="post">{% csrf_token %}{% include 'form_template.html' %}
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button class="btn btn-success" type="submit" id="register">Submit</button>
+                        </div>
+                    </div>
+                </form>
+                </br>
+                </br>
+                </br>
+{#            </div>#}
+        </div>
+    </div>
+
+
+{% endblock %}
+
+</body>
+</html>

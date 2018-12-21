@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load course_tags %}
+
+
+<!DOCTYPE html>
+<head>
+
+    {% block title %} Courses {% endblock %}
+
+</head>
+<body>
+
+{% block main-body %}
+    <!-- Page Content -->
+    <div class="container">
+        <br>
+        <div class="row">
+            {% if request.user.is_superuser %}
+                <div class="col-md-12">
+                <a href="{% url 'course:new_course' %}">
+                    <button class="btn btn-warning" >Add new course</button>
+                </a>
+
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Projects Row -->
+        <div class="row">
+            {% for course in courses %}
+                <div class="col-sm-4 portfolio-item equalize">
+                    <h3>
+                        <p class="text-primary">{{ course.title }}</p>
+                        <span class="badge badge-danger">{{ course.language|map_lang }}</span>
+                    </h3>
+
+                    <p>{{ course.description }}</p>
+                    {#                    {% if user.is_superuser == False %}#}
+                    <div>
+                        <ul class="list-inline">
+                            {% if course.main_exercise %}
+                                {% if course.already_assigned %}
+                                    <li>
+                                        <a href="{% url 'course:exercise_detail' course.pk course.main_exercise.lesson_id course.main_exercise.id %}">
+                                            <button class="btn btn-primary">Enter</button>
+                                        </a>
+
+                                    </li>
+                                {% else %}
+                                    <li>
+                                        <form class="form-horizontal" action="" method="post">{% csrf_token %}
+                                            <input type="hidden" name="course_id" value="{{ course.id }}"/>
+                                            <button class="btn btn-warning" type="submit">Assign</button>
+                                        </form>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li>
+                                    <p>
+                                        <button class="btn btn-default" type="submit">In Progress</button>
+                                    </p>
+                                </li>
+                            {% endif %}
+
+
+                        </ul>
+
+
+                    </div>
+
+                    {#                    {% else %}#}
+                    {#                        <div>#}
+                    {#                            <ul class="list-inline">#}
+                    {#                                <li>#}
+                    {#                                    {% if course.main_exercise.id %}#}
+                    {#                                        <a href="{% url 'course:exercise_detail' course.pk course.main_exercise.id %}">#}
+                    {#                                            <button class="btn btn-primary">Enter</button>#}
+                    {#                                        </a>#}
+                    {#                                    {% else %}#}
+                    {#                                        <a href="{% url 'course:manage' %}">#}
+                    {#                                            <button class="btn btn-primary">Enter</button>#}
+                    {#                                        </a>#}
+                    {#                                    {% endif %}#}
+                    {##}
+                    {##}
+                    {#                                </li>#}
+                    {##}
+                    {#                            </ul>#}
+                    {#                        </div>#}
+                    {##}
+                    {#                    {% endif %}#}
+                </div>
+
+            {% endfor %}
+
+        </div>
+        <!-- /.row -->
+        <br>
+    </div>
+    <!-- /.container -->
+
+{% endblock %}
+
+{% block js-script %}
+    <script>
+
+        $(document).ready(function () {
+            var maxHeight = 0;
+            $(".equalize").each(function () {
+                if ($(this).height() > maxHeight) {
+                    maxHeight = $(this).height();
+                }
+            });
+            $(".equalize").height(maxHeight);
+        });
+
+    </script>
+
+{% endblock %}
+
+</body>
+
+</html>

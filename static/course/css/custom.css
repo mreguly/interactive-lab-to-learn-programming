@@ -1,0 +1,79 @@
+body {
+    background-color: #272822;
+    padding-top: 60px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+}
+
+.modal-content {
+    background-color: #272822;
+}
+
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto;
+  /* Negative indent footer by its height */
+  margin: 0 auto -30px;
+  /* Pad bottom by footer height */
+  padding: 0 0 30px;
+}
+
+/* Set the fixed height of the footer here */
+#footer {
+  height: 30px;
+    font-size: 0.8em;
+}
+
+
+
+.portfolio-item {
+    margin-bottom: 25px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: white;
+}
+
+.row {
+    margin: 0;
+}
+
+.black {
+    color: #222222;
+}
+
+.result {
+    color: white;
+}
+
+p, th, td{
+    color: white;
+}
+
+
+.collapse {
+    transition: height 0.01s;
+    -webkit-transition: none;
+}
+
+.panel-body {
+    padding: 8px;
+    padding-left: 20px;
+}
+
+
+.codemirror-test-in {
+    color: #7270FF;
+}
+
+.codemirror-test-out {
+    color: white;
+    background-color: #090300;
+    width:100%;
+    padding:5px;
+}

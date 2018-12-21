@@ -1,0 +1,874 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Exercises {% endblock %}
+
+{% block css-plugin %}
+
+    <!-- Plugin CSS -->
+    <link href=" {% static 'course/plugin/codemirror/lib/codemirror.css' %} " rel="stylesheet">
+    <link href=" {% static 'course/plugin/codemirror/theme/monokai.css' %} " rel="stylesheet">
+    <link href=" {% static 'course/plugin/codemirror/theme/3024-night.css' %} " rel="stylesheet">
+
+{% endblock %}
+
+
+{% block main-body %}
+
+    <script>
+        {#    $(document).ready(function(){#}
+
+        function func(e) {
+            var id = e.id;
+            $.ajax({
+                url: 'exercise/' + id + '/',
+                type: 'POST',
+                data: {
+                    exercise_id: id,
+                },
+                success: function (response) {
+                },
+                error: function (xhr, errmsg, err) {
+                    console.log("Error " + xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        }
+    </script>
+
+
+<!-- The LESSON Modal -->
+<div class="modal" id="lessonModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Modal Heading</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <form id="post-lesson-form" class="form-horizontal" action="" method="post">{% csrf_token %}
+
+            {% for field in lesson_form %}
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <span class="text-danger small">{{ field.errors }}</span>
+                    </div>
+                    <p class="control-label col-sm-2">{{ field.label_tag }}</p>
+                <div class="col-sm-10">{{ field }}</div>
+                </div>
+            {% endfor %}
+
+{#            <div id="lesson_id" hidden="true"> {{ course_id }}</div>#}
+
+          <!-- Modal footer -->
+          <div class="modal-footer">
+              <button class="btn btn-success" type="submit" id="register">Submit</button>
+            <button type="submit" class="btn btn-danger" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- The EXERCISE Modal -->
+<div class="modal" id="exerciseModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Modal Heading</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <form id="post-exercise-form" class="form-horizontal" action="" method="post">{% csrf_token %}
+
+            {% for field in exercise_form %}
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <span class="text-danger small">{{ field.errors }}</span>
+                    </div>
+                    <p class="control-label col-sm-2">{{ field.label_tag }}</p>
+                <div class="col-sm-10">{{ field }}</div>
+                </div>
+            {% endfor %}
+
+            <div id="lesson_id" hidden="true"></div>
+
+          <!-- Modal footer -->
+          <div class="modal-footer">
+              <button class="btn btn-success" type="submit" id="register">Submit</button>
+            <button type="submit" class="btn btn-danger" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- The TEST Modal -->
+<div class="modal" id="testModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Modal Heading</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <form id="post-test-form" class="form-horizontal" action="" method="post">{% csrf_token %}
+
+            {% for field in test_form %}
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <span class="text-danger small">{{ field.errors }}</span>
+                    </div>
+                    <p class="control-label col-sm-2">{{ field.label_tag }}</p>
+                <div class="col-sm-10">{{ field }}</div>
+                </div>
+            {% endfor %}
+
+          <!-- Modal footer -->
+          <div class="modal-footer">
+              <button class="btn btn-success" type="submit" id="register">Submit</button>
+            <button type="submit" class="btn btn-danger" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="containter-fluid">
+        <div class="row">
+            <div class="col-sm-2">
+                <div id="course_id" hidden="true"> {{ course_id }}</div>
+
+                <div class="row center-block">
+                    <h3>{{ exercise.title }}</h3>
+                    <h3>Lessons</h3>
+
+                </div>
+
+                {% for lesson, exercises in lesson_map %}
+{#                    {{ lesson.id }}#}
+                    <div class="panel panel-default">
+                        <div data-toggle="collapse" data-target="#panel{{ forloop.counter }}"
+                             class="panel-heading collapsed">
+                            <h4 class="panel-title" style="cursor: pointer;">
+                                {{ lesson.title }}
+                                {% if lesson.exercises_done %}
+                                    <br>
+                                    <span >{{ lesson.exercises_done }}/{{ exercises|length }}</span>
+                                {% else %}
+                                    <br>
+                                    <span >0/{{ exercises|length }}</span>
+                                {% endif %}
+                            </h4>
+                        </div>
+                        <div id="panel{{ forloop.counter }}" class="panel-collapse collapse">
+
+                            <div class="list-group">
+                                {% for exercise in exercises %}
+                                    {% if exercise.state == 'complete' %}
+                                        <a href="{% url 'course:exercise_detail' exercise.course_id exercise.lesson_id exercise.id %}"
+                                                {# ?lesson={{lesson.id}}" #}
+                                           class="list-group-item list-group-item-success" style="cursor: pointer;"
+                                           id={{ exercise.id }}>{{ exercise.title }}</a>
+                                    {% elif exercise.state == 'open' %}
+                                        <a href="{% url 'course:exercise_detail' exercise.course_id exercise.lesson_id exercise.id %}"
+                                           class="list-group-item list-group-item-danger" style="cursor: pointer;"
+                                           id={{ exercise.id }}>{{ exercise.title }}</a>
+                                    {% else %}
+                                        <a href="{% url 'course:exercise_detail' exercise.course_id exercise.lesson_id exercise.id %}"
+                                           class="list-group-item" style="cursor: pointer;"
+                                           id={{ exercise.id }}>{{ exercise.title }}</a>
+                                    {% endif %}
+
+                                {% endfor %}
+
+{#                                ADDING EXERCISE   #}
+                                <a href="{% url 'course:new_exercise' lesson.id %}"
+                                   class="list-group-item" style="cursor: pointer;"
+                                   data-toggle="modal" data-target="#exerciseModal" data-lesson-id="{{ lesson.id }}">
+                                    <span class="glyphicon glyphicon-plus"></span> New exercise</a>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="panel panel-default">
+                    <div data-toggle="collapse" data-target="#panel{{ forloop.counter }}"
+                    class="panel-heading collapsed">
+                        <h4 class="panel-title" style="cursor: pointer;"class="list-group-item" style="cursor: pointer;" data-toggle="modal" data-target="#lessonModal"
+                           data-lesson-id="{{ lesson.id }}">
+                            <span class="glyphicon glyphicon-plus"></span> New lesson
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-10">
+                <h3>{{ exercise_title }}</h3>
+
+                <p>{{ exercise_description }}</p>
+
+                <div class="row">
+
+                    <div class="col-sm-12">
+
+
+                        <div class="col-sm-6">
+                            <h3>Code Here</h3>
+
+                            <textarea class="codemirror-input" class="form-control" id="code"
+                                      name="code">{{ exercise_code }}
+</textarea>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <h3>Output Window</h3>
+                            <textarea class="codemirror-output" class="portfolio-item" id="result"
+                                      name="result"></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="col-sm-12">
+                        <ul class="list-inline">
+                            <li>
+                                <button style="margin-top: 2%;" id="btnExecute" class="btn btn-success" type="button">
+                                    Run & Save
+                                </button>
+                            </li>
+                            <li>
+                                <button style="margin-top: 2%;" id="btnRunTests" class="btn btn-primary" type="button">
+                                    Run Tests
+                                </button>
+                            </li>
+                            {% if user.is_superuser %}
+                                <li>
+{#                                    <a href="{% url 'course:exercise_back' exercise_id %}">#}
+                                        <button id="edit-exercise" style="margin-top: 2%;" class="btn btn-warning" type="submit">
+                                            Edit
+                                        </button>
+{#                                    </a>#}
+                                </li>
+                            {% endif %}
+                        </ul>
+
+                    </div>
+                </div>
+
+                <div class="row">
+                    {% if exercise_tests %}
+                        <div class="col-sm-12">
+                            <div class="col-sm-12">
+                                <h3>Tests
+                                    <button class="btn btn-warning"
+                                    data-toggle="modal" data-target="#testModal">
+                                    Add new Test
+                                    </button>
+                                </h3>
+
+
+                            </div>
+
+                            {% if user.is_superuser %}
+                                <p class="col-sm-1 ">
+                                    Edit
+                                </p>
+                                <p class="col-sm-2 ">
+                                    Result
+                                </p>
+                                <p class="col-sm-4 ">
+                                    Input
+                                </p>
+                                <p class="col-sm-5 ">
+                                    Correct Answer
+                                </p>
+                            {% else %}
+                                <p class="col-sm-2 ">
+                                    Result
+                                </p>
+                                <p class="col-sm-5 ">
+                                    Input
+                                </p>
+                                <p class="col-sm-5 ">
+                                    Correct Answer
+                                </p>
+                            {% endif %}
+                        </div>
+                        {% for test in  exercise_tests %}
+                            <div class="col-sm-12">
+                                <hr style="margin-top:0;">
+                                {% if user.is_superuser %}
+                                    <div class="col-sm-1 portfolio-item">
+                                        <a href="{% url 'course:test_back' exercise_id test.id %}">
+                                            <button style="margin-top: 2%;" class="btn btn-warning btn-xs"
+                                                    type="submit">
+                                                Edit
+                                            </button>
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-2 portfolio-item">
+                                        {% if test.result == 'CORRECT' %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-success">{{ test.result }}</label>
+                                        {% elif test.result == "WRONG" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% elif test.result == "TIMEOUT" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% elif test.result == "ERROR" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% elif test.result == "SYNTAX_ERROR" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% else %}
+                                            <label id="result{{ test.id }}"></label>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-sm-4 portfolio-item">
+                                        <label class="codemirror-test-in" id="{{ test.id }}">{{ test.input }}</label>
+                                    </div>
+                                    <div class="col-sm-5 portfolio-item">
+                                        <label class="codemirror-test-out">{{ test.correct_answer }}</label>
+
+                                    </div>
+                                {% else %}
+                                    <div class="col-sm-2 portfolio-item">
+                                        {% if test.result == 'CORRECT' %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-success">{{ test.result }}</label>
+                                        {% elif test.result == "WRONG" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% elif test.result == "TIMEOUT" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% elif test.result == "ERROR" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% elif test.result == "SYNTAX_ERROR" %}
+                                            <label id="result{{ test.id }}"
+                                                   class="label label-danger">{{ test.result }}</label>
+                                        {% else %}
+                                            <label id="result{{ test.id }}"></label>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-sm-5 portfolio-item">
+                                        <label class="codemirror-test-in" id="{{ test.id }}">{{ test.input }}</label>
+                                    </div>
+                                    <div class="col-sm-5 portfolio-item">
+                                        <label class="codemirror-test-out">{{ test.correct_answer }}</label>
+
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+                        {% endfor %}
+                    {% endif %}
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}
+
+
+</body>
+
+
+
+
+{% block js-plugin %}
+    <!-- PLUGIN JS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <script src="{% static 'course/plugin/codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'course/plugin/codemirror/mode/python/python.js' %}"></script>
+    <script src="{% static 'course/plugin/codemirror/mode/clike/clike.js' %}"></script>
+
+
+{% endblock %}
+
+
+{% block js-script %}
+    <script>
+
+        // CODEMIRROR SETTINGS
+        var input = $(".codemirror-input")[0];
+        var output = $(".codemirror-output")[0];
+
+        var input_settings = CodeMirror.fromTextArea(input, {
+            lineNumbers: true,
+            mode: "python",
+            theme: "monokai",
+            scrollbarStyle: "null",
+            lineWrapping: true,
+            viewportMargin: Infinity,
+            tabSize: "2",
+            {#            indentUnit: "4",#}
+            indentWithTabs: true,
+            tabMode: "shift",
+        });
+
+        var lang_type = "{{course.language}}";
+        console.log(lang_type);
+
+        input_settings.setOption("mode", lang_type);
+        input_settings.setSize("100%", "100%");
+
+        var output_settings = CodeMirror.fromTextArea(output, {
+            theme: "3024-night",
+            mode: "default",
+            readOnly: "nocursor",
+        });
+
+        output_settings.setValue("Formated code from docker container goes here.");
+
+        // FUNCTIONS
+        function execute() {
+
+            var path_url = window.location.pathname;
+            var array = path_url.split('/');
+            var course_id = array[2];
+            var lesson_id = array[4];
+            var exercise_id = array[6];
+
+
+            $("#btnExecute").attr("disabled", true);
+            output_settings.setValue('');
+
+            $.ajax({
+                url: path_url + "execute/",
+                type: 'POST',
+                data: {
+                    exercise_id: exercise_id,
+                    lesson_id: lesson_id,
+                    course_id: course_id,
+                    content: input_settings.getValue(),
+                },
+                success: function (response) {
+                    var result = response['result'];
+
+                    if (result == null) {
+                        window.location.href = '/login/';
+                    }
+                    else {
+                        $("#btnExecute").attr("disabled", false);
+
+                        output_settings.setValue(result)
+                    }
+
+                },
+                error: function (xhr, errmsg, err) {
+                    console.log("Error " + xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        }
+
+        function run_tests() {
+
+            var path_url = window.location.pathname;
+            var array = path_url.split('/');
+            var course_id = array[2];
+            var lesson_id = array[4];
+            var exercise_id = array[6];
+            var test_areas = document.querySelectorAll('.codemirror-test-in');
+
+            $("#btnRunTests").attr("disabled", true);
+
+
+            $.ajax({
+                url: path_url + "save_code/",
+                type: 'POST',
+                async: false,
+                data: {
+                    content: input_settings.getValue(),
+                },
+                {#                    success: function (response) {#}
+                {#                            #}
+                {#                    },#}
+                {#                    error: function (xhr, errmsg, err) {#}
+                {#                        console.log("Error " + xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console#}
+                {#                    }#}
+            });
+
+
+            for (var i = 0; i < test_areas.length; i++) {
+                var test_id = test_areas[i].id;
+                var id = "result" + test_id;
+
+                document.getElementById(id).innerText = 'RUNNING';
+                $("#" + id).removeClass().addClass("label label-primary");
+
+                $.ajax({
+                    url: path_url + "test/",
+                    type: 'POST',
+                    async: false,
+                    data: {
+                        exercise_id: exercise_id,
+                        lesson_id: lesson_id,
+                        course_id: course_id,
+                        test_id: test_id,
+                    },
+                    success: function (response) {
+                        var result = response['result'];
+                        if (result == null) {
+                            window.location.href = '/login/';
+                        }
+                        else {
+                            if (result == 'CORRECT') {
+                                document.getElementById(id).innerText = result;
+                                $("#" + id).removeClass("label label-primary").addClass("label label-success");
+                            }
+                            else if (result == 'WRONG') {
+                                document.getElementById(id).innerText = result;
+                                $("#" + id).removeClass("label label-primary").addClass("label label-danger");
+
+                            }
+                            else if (result == 'TIMEOUT') {
+                                document.getElementById(id).innerText = result;
+                                $("#" + id).removeClass("label label-primary").addClass("label label-danger");
+
+                            }
+                            else if (result == 'ERROR') {
+                                document.getElementById(id).innerText = result;
+                                $("#" + id).removeClass("label label-primary").addClass("label label-danger");
+
+                            }
+                            else if (result == 'SYNTAX_ERROR') {
+                                document.getElementById(id).innerText = result;
+                                $("#" + id).removeClass("label label-primary").addClass("label label-danger");
+
+                            }
+                            else {
+                                document.getElementById(id).innerText = '';
+                                $("#" + id).removeClass("label label-primary").addClass("label label-danger");
+                            }
+                        }
+                    },
+                    error: function (xhr, errmsg, err) {
+                        console.log("Error " + xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                    }
+                });
+                {#                break;#}
+            }
+
+            $("#btnRunTests").attr("disabled", false);
+        }
+
+        // JQUERY FOR COLAPSING/HIDING PANELS
+
+        $(".panel .panel-collapse").on('shown.bs.collapse', function () {
+            var active = $(this).attr('id');
+            var panels = localStorage.panels === undefined ? new Array() : JSON.parse(localStorage.panels);
+            if ($.inArray(active, panels) == -1) //check that the element is not in the array
+                panels.push(active);
+            localStorage.panels = JSON.stringify(panels);
+        });
+        $(".panel .panel-collapse").on('hidden.bs.collapse', function () {
+            var active = $(this).attr('id');
+            var panels = localStorage.panels === undefined ? new Array() : JSON.parse(localStorage.panels);
+            var elementIndex = $.inArray(active, panels);
+            if (elementIndex !== -1) //check the array
+            {
+                panels.splice(elementIndex, 1); //remove item from array
+            }
+            localStorage.panels = JSON.stringify(panels); //save array on localStorage
+        });
+        var panels = localStorage.panels === undefined ? new Array() : JSON.parse(localStorage.panels); //get all panels
+        for (var i in panels) { //<-- panel is the name of the cookie
+            if ($("#" + panels[i]).hasClass('panel-collapse')) // check if this is a panel
+            {
+                $("#" + panels[i]).collapse("show");
+            }
+        }
+
+        // FUNCTION ONCLICK MAPPED
+        window.onload = function () {
+            document.getElementById("btnExecute").onclick = execute;
+            document.getElementById("btnRunTests").onclick = run_tests;
+        }
+
+        $('#lessonModal').on('show.bs.modal', function (event) {
+          var myVal = $(event.relatedTarget).data('lesson-id');
+          $(this).find("#lesson_id").text(myVal);
+        });
+
+        $('#post-lesson-form').on('submit', function(event){
+            event.preventDefault();
+            {#console.log("ASGAS", $(event.relatedTarget).data)#}
+            var lesson_id = $(event.relatedTarget).data('lesson-id');
+
+            {#console.log("form submitted!", lesson_id)  // sanity check#}
+            create_new_lesson();
+        });
+
+        $('#post-exercise-form').on('submit', function(event){
+            event.preventDefault();
+            {#console.log("ASGAS", $(event.relatedTarget).dataset)#}
+            {#var lesson_id = $(event.relatedTarget).data('lesson-id');#}
+            {#console.log(lesson_id, "AGSAGS");#}
+            {#console.log("form submitted!", lesson_id)  // sanity check#}
+
+            var lesson_id = $("#lesson_id").val();
+            console.log("SEND", lesson_id)
+            create_new_exercise(lesson_id);
+        });
+
+        $(document).on("click", ".list-group-item", function () {
+            var lesson_id = $(this).attr('data-lesson-id');
+            $("#post-exercise-lesson").val(lesson_id);
+            $("#lesson_id").val(lesson_id);
+            console.log("ASFAF", $("#lesson_id").val());
+
+
+        });
+
+        $('#post-test-form').on('submit', function(event){
+            event.preventDefault();
+            {#console.log("ASGAS", $(event.relatedTarget).dataset)#}
+            {#var lesson_id = $(event.relatedTarget).data('lesson-id');#}
+            {#console.log(lesson_id, "AGSAGS");#}
+            {#console.log("form submitted!", lesson_id)  // sanity check#}
+
+            {#var lesson_id = $("#lesson_id").val();#}
+            {#console.log("SEND", lesson_id)#}
+            create_new_test();
+        });
+
+        $('#edit-exercise').on('click', function(event){
+            console.log("edit exercise") // sanity check
+
+            var path_url = window.location.pathname;
+            var array = path_url.split('/');
+
+            var course_id = array[2];
+            var lesson_id =  array[4];
+            var exercise_id = array[6];
+
+            $.ajax({
+                url : "/courses/manage/edit/exercise/work/" + exercise_id + "/", // the endpoint
+                type : "POST", // http method
+                data : {
+                    {#'exercise': exercise_id,#}
+                    {#'input' : $('#post-test-input').val(),#}
+                    {#'correct_answer' : $('#post-test-correct_answer').val(),#}
+                    {#'timeout' : $('#post-test-timeout').val(),#}
+
+                }, // data sent with the post request
+
+                // handle a successful response
+                success : function(json) {
+
+                    {#$('#post-exercise-course').val(course_id);#}
+                    {#$('#post-exercise-lesson').val(lesson_id);#}
+
+                    json = JSON.parse(json);
+                    json = json[0]['fields'];
+                    console.log(json);
+
+                    $('#post-exercise-title').val(json['title']);
+                    $('#post-exercise-description').val(json['description']);
+                    $('#post-exercise-test_method').val(json['test_method']);
+                    $('#post-exercise-code').val(json['code']);
+                    {#$('#lesson_id').val(lesson_id);#}
+
+
+                    $('#exerciseModal').modal('show');
+                    {#location.reload()#}
+                    console.log(json); // log the returned json to the console
+                    console.log("success"); // another sanity check
+
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        });
+
+        function create_new_test() {
+            console.log("create post is working!") // sanity check
+
+            var path_url = window.location.pathname;
+            var array = path_url.split('/');
+
+            var course_id = array[2];
+            var lesson_id =  array[4];
+            var exercise_id = array[6];
+
+            {#console.log(course_id);#}
+
+            console.log("ASFA", $('#post-test-input').val());
+            console.log("ASFA", $('#post-test-correct_answer').val());
+            console.log("ASFA", $('#post-test-timeout').val());
+
+            $.ajax({
+                url : "/courses/manage/new/test/" + exercise_id + "/", // the endpoint
+                type : "POST", // http method
+                data : {
+                    'exercise': exercise_id,
+                    'input' : $('#post-test-input').val(),
+                    'correct_answer' : $('#post-test-correct_answer').val(),
+                    'timeout' : $('#post-test-timeout').val(),
+
+                }, // data sent with the post request
+
+                // handle a successful response
+                success : function(json) {
+                    $('#post-text').val(''); // remove the value from the input
+
+                    $('#lessonModal').modal('hide');
+                    {#location.reload()#}
+                    {#console.log(json); // log the returned json to the console#}
+                    console.log("success"); // another sanity check
+
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        };
+
+
+        function create_new_exercise(lesson_id) {
+            console.log("create post is working!") // sanity check
+
+            var path_url = window.location.pathname;
+            var array = path_url.split('/');
+
+            var course_id = array[2];
+            var exercise_id = array[6];
+
+            console.log(lesson_id);
+
+
+            var exercise_title = $('#post-exercise-title').val();
+
+            {#console.log("ASFA", exercise_title);#}
+            {#console.log("ASFA", $('#post-exercise-description').val());#}
+            {#console.log("ASFA", $('#post-exercise-test_method').val());#}
+            {#console.log("ASFA", $('#post-exercise-code').val());#}
+
+            var url = "/courses/manage/new/exercise/" + lesson_id + "/"
+
+            if (lesson_id == '') {
+                lesson_id = array[4];
+                url = "/courses/manage/edit/exercise/" + exercise_id + "/"
+            }
+
+
+
+
+            $.ajax({
+                url : url, // the endpoint
+                type : "POST", // http method
+                data : {
+                    'course': course_id,
+                    'lesson': lesson_id,
+                    'title' : $('#post-exercise-title').val(),
+                    'description' : $('#post-exercise-description').val(),
+                    'test_method' : $('#post-exercise-test_method').val(),
+                    'code' : $('#post-exercise-code').val()
+                }, // data sent with the post request
+
+                // handle a successful response
+                success : function(json) {
+                    $('#post-text').val(''); // remove the value from the input
+
+                    $('#lessonModal').modal('hide');
+                    location.reload();
+                    // console.log(json); // log the returned json to the console
+                    console.log("success"); // another sanity check
+
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        };
+
+
+
+        function create_new_lesson() {
+            console.log("create post is working!") // sanity check
+
+            var path_url = window.location.pathname;
+            var array = path_url.split('/');
+
+            var course_id = array[2];
+            var lesson_id =  array[4];
+            var exercise_id = array[6];
+
+            {#console.log(course_id);#}
+
+            var lesson_title = $('#post-lesson-title').val();
+
+            $.ajax({
+                url : "/courses/manage/new/lesson/" + course_id + "/", // the endpoint
+                type : "POST", // http method
+                data : {
+                    'course': course_id,
+                    'title' : lesson_title
+                }, // data sent with the post request
+
+                // handle a successful response
+                success : function(json) {
+                    $('#post-text').val(''); // remove the value from the input
+
+                    $('#lessonModal').modal('hide');
+                    location.reload()
+                    {#console.log(json); // log the returned json to the console#}
+                    {#console.log("success"); // another sanity check#}
+
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                        " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+                    console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+                }
+            });
+        };
+
+    </script>
+{% endblock %}
+
+</html>
